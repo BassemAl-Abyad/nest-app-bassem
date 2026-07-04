@@ -94,12 +94,11 @@ export class User {
 }
 export const userSchema = SchemaFactory.createForClass(User);
 
-userSchema.pre('save', async function () {
-  if (this.isModified('password')) {
+userSchema.pre("save", async function () {
+  if (this.isModified("password")) {
     this.password = await hash(this.password);
   }
 });
-
 
 userSchema
   .virtual("username")

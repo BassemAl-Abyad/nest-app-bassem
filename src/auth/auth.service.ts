@@ -1,9 +1,38 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from "@nestjs/common";
+import { Model } from "mongoose";
+import { HUserDocument, User } from "src/DB/Models/user.model";
+import { CreateUserDTO } from "./dto/createUser.dto";
+import { hash } from "bcrypt";
+import { InjectModel } from "@nestjs/mongoose";
 
 @Injectable()
 export class AuthService {
+  constructor(
+    @InjectModel(User.name) private readonly userModel: Model<HUserDocument>,
+  ) {}
+
+  async register(createUserDto: CreateUserDTO) {
+    const existingUser = await this.userModel.findOne({
+      email: createUserDto.email,
+    });
+    if (existingUser)
+      throw new ConflictException(
+        "An Account with this email address already exits",
+      );
+
+    const hashedPassword = await hash(createUserDto.password, Number(process.env.SALT));
+
+    const newUser = new this.userModel({
+      ...createUserDto,
+      password: hashedPassword,
+    });
+
+    const savedUser = await newUser.save();
+    return savedUser;
+  }
+
   create(createAuthDto: any) {
-    return 'This action adds a new auth';
+    return "This action adds a new auth";
   }
 
   findAll() {

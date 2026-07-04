@@ -1,36 +1,49 @@
+import { Transform } from "class-transformer";
 import {
   IsEmail,
-  IsInt,
   IsString,
   Length,
-  Min,
-  Max,
   IsOptional,
-  IsPhoneNumber,
-} from 'class-validator';
+  IsNotEmpty,
+  ValidateIf,
+  IsEnum,
+} from "class-validator";
+import { GenderEnum, ProviderEnum, RoleEnum } from "src/common/enums/user.enums";
 
 export class CreateUserDTO {
   @IsString()
-  @Length(3, 20, { message: 'Username must be between 3 and 20 characters' })
-  username: string;
-
-  @IsEmail({}, { message: 'Invalid email address' })
-  email: string;
-
-  @IsInt()
-  @Min(0, { message: 'Age must be a positive integer' })
-  @Max(120, { message: 'Age must be less than or equal to 120' })
-  age: number;
+  @IsNotEmpty({ message: "First name is required" })
+  @Length(3, 20, { message: "First name must be between 3 and 20 characters" })
+  @Transform(({ value }) => value?.trim())
+  firstName!: string;
 
   @IsString()
-  @IsOptional()
-  bio?: string;
+  @IsNotEmpty({ message: "Last name is required" })
+  @Length(3, 20, { message: "Last name must be between 3 and 20 characters" })
+  @Transform(({ value }) => value?.trim())
+  lastName!: string;
 
-  @IsString({ each: true })
-  @IsOptional()
-  skills?: string[];
+  @IsEmail({}, { message: "Please provide a valid email address" })
+  @IsNotEmpty({ message: "Email is required" })
+  @IsEmail({}, { message: "Invalid email address" })
+  @Transform(({ value }) => value?.toLowerCase().trim())
+  email!: string;
 
-  @IsPhoneNumber('EG')
+  @IsString()
+  @IsNotEmpty({ message: "Password is required" })
+  @Length(8, 20, { message: "Password must be between 8 and 20 characters" })
+  @ValidateIf((dto: CreateUserDTO) => dto.provider !== ProviderEnum.GOOGLE)
+  password!: string;
+
+  @IsEnum(GenderEnum, { message: "Gender value must be valid" })
   @IsOptional()
-  phone?: string;
+  gender!: string;
+
+  @IsEnum(ProviderEnum, { message: "Provider value must be valid" })
+  @IsOptional()
+  provider!: string;
+
+  @IsEnum(RoleEnum, { message: "Role value must be valid" })
+  @IsOptional()
+  role!: string;
 }
