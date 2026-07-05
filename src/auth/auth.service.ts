@@ -4,11 +4,13 @@ import { HUserDocument, User } from "src/DB/Models/user.model";
 import { CreateUserDTO } from "./dto/createUser.dto";
 import { hash } from "bcrypt";
 import { InjectModel } from "@nestjs/mongoose";
+import { MailService } from "src/mail/mail.service";
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<HUserDocument>,
+    private readonly mailService: MailService,
   ) {}
 
   async register(createUserDto: CreateUserDTO) {
@@ -20,14 +22,27 @@ export class AuthService {
         "An Account with this email address already exits",
       );
 
-    const hashedPassword = await hash(createUserDto.password, Number(process.env.SALT));
+    // generate otp
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOTP = await hash(otp, Number(process.env.SALT));
+
+    const expireTime = new Date();
+    expireTime.setMinutes(expireTime.getMinutes() + 5);
+
+    const hashedPassword = await hash(
+      createUserDto.password,
+      Number(process.env.SALT),
+    );
 
     const newUser = new this.userModel({
       ...createUserDto,
       password: hashedPassword,
+      confirmEmailOTP: hashedOTP,
+      OTPExpiresAt: expireTime,
     });
 
     const savedUser = await newUser.save();
+    await this.mailService.sendVerificationOtp(savedUser.email, otp);
     return savedUser;
   }
 
