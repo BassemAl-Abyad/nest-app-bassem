@@ -15,7 +15,7 @@ export class MailService {
         context: { confirmEmailOTP: otp },
       });
       this.logger.log(`Verification code successfully dispatched to :${email}`);
-    } catch (error) {
+    } catch {
       this.logger.error(`Failed to send email to: ${email}`);
     }
   }

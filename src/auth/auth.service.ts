@@ -1,10 +1,19 @@
-import { ConflictException, Injectable } from "@nestjs/common";
+/* eslint-disable @typescript-eslint/no-misused-promises */
+import {
+  BadGatewayException,
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { Model } from "mongoose";
 import { HUserDocument, User } from "src/DB/Models/user.model";
 import { CreateUserDTO } from "./dto/createUser.dto";
 import { hash } from "bcrypt";
 import { InjectModel } from "@nestjs/mongoose";
 import { MailService } from "src/mail/mail.service";
+import { ConfirmEmailDTO } from "./dto/confirm-email.dto";
+import { compare } from "src/common/security/hash.security";
 
 @Injectable()
 export class AuthService {
@@ -46,7 +55,36 @@ export class AuthService {
     return savedUser;
   }
 
-  create(createAuthDto: any) {
+  async confirmEmail(confirmEmailDto: ConfirmEmailDTO) {
+    const user = await this.userModel.findOne({
+      email: confirmEmailDto.email,
+    });
+
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (user.confirmEmail) {
+      throw new BadRequestException("Email already confirmed");
+    }
+
+    if (
+      !user.confirmEmailOTP ||
+      !compare(confirmEmailDto.confirmEmailOTP, user.confirmEmailOTP)
+    ) {
+      throw new BadRequestException("Invalid OTP");
+    }
+
+    if (new Date() > user.OTPExpiresAt!) {
+      throw new BadGatewayException("OTP has expired");
+    }
+
+    user.confirmEmail = new Date();
+    user.confirmEmailOTP = undefined;
+    user.OTPExpiresAt = undefined;
+  }
+
+  create() {
     return "This action adds a new auth";
   }
 
@@ -58,7 +96,7 @@ export class AuthService {
     return `This action returns a #${id} auth`;
   }
 
-  update(id: number, updateAuthDto: any) {
+  update(id: number) {
     return `This action updates a #${id} auth`;
   }
 

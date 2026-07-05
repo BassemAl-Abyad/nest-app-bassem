@@ -14,19 +14,19 @@ export class CreateUserDTO {
   @IsString()
   @IsNotEmpty({ message: "First name is required" })
   @Length(3, 20, { message: "First name must be between 3 and 20 characters" })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value?: string }) => value?.trim())
   firstName!: string;
 
   @IsString()
   @IsNotEmpty({ message: "Last name is required" })
   @Length(3, 20, { message: "Last name must be between 3 and 20 characters" })
-  @Transform(({ value }) => value?.trim())
+  @Transform(({ value }: { value?: string }) => value?.trim())
   lastName!: string;
 
   @IsEmail({}, { message: "Please provide a valid email address" })
   @IsNotEmpty({ message: "Email is required" })
   @IsEmail({}, { message: "Invalid email address" })
-  @Transform(({ value }) => value?.toLowerCase().trim())
+  @Transform(({ value }: { value?: string }) => value?.toLowerCase().trim())
   email!: string;
 
   @IsString()
@@ -37,13 +37,13 @@ export class CreateUserDTO {
 
   @IsEnum(GenderEnum, { message: "Gender value must be valid" })
   @IsOptional()
-  gender!: string;
+  gender?: GenderEnum;
 
   @IsEnum(ProviderEnum, { message: "Provider value must be valid" })
   @IsOptional()
-  provider!: string;
+  provider?: ProviderEnum;
 
   @IsEnum(RoleEnum, { message: "Role value must be valid" })
   @IsOptional()
-  role!: string;
+  role?: RoleEnum;
 }
