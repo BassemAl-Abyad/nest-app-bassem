@@ -2,6 +2,7 @@ import {
   IsArray,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   Min,
   ValidateNested,
@@ -18,10 +19,10 @@ export class CartItemDto {
   @Min(1, { message: "Quantity must be at least 1" })
   quantity!: number;
 
+  @IsOptional()
   @IsNumber()
-  @IsNotEmpty({ message: "Price is required.." })
   @Min(0, { message: "Price must be a positive number" })
-  price!: number;
+  price?: number;
 }
 
 export class CreateCartDto {

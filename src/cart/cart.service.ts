@@ -6,6 +6,7 @@ import {
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Cart, HCartDocument } from "src/DB/Models/cart.model";
+import { Product, HProductDocument } from "src/DB/Models/product.model";
 import { CreateCartDto } from "./dto/create-cart.dto";
 import { UpdateCartDto } from "./dto/update-cart.dto";
 
@@ -14,10 +15,34 @@ export class CartService {
   constructor(
     @InjectModel(Cart.name)
     private readonly cartModel: Model<HCartDocument>,
+    @InjectModel(Product.name)
+    private readonly productModel: Model<HProductDocument>,
   ) {}
 
   private calculateTotal(items: Array<{ quantity: number; price: number }>) {
     return items.reduce((total, item) => total + item.quantity * item.price, 0);
+  }
+
+  private async resolveItemsWithPrices(
+    items: Array<{ productId: string; quantity: number; price?: number }>,
+  ) {
+    const resolvedItems: Array<{ productId: string; quantity: number; price: number }> = [];
+
+    for (const item of items) {
+      const product = await this.productModel.findById(item.productId);
+
+      if (!product) {
+        throw new NotFoundException(`Product with id ${item.productId} not found`);
+      }
+
+      resolvedItems.push({
+        productId: item.productId,
+        quantity: item.quantity,
+        price: product.price,
+      });
+    }
+
+    return resolvedItems;
   }
 
   async create(dto: CreateCartDto, userId: string) {
@@ -32,10 +57,12 @@ export class CartService {
       );
     }
 
-    const total = this.calculateTotal(dto.items);
+    const resolvedItems = await this.resolveItemsWithPrices(dto.items);
+    const total = this.calculateTotal(resolvedItems);
 
     const newCart = new this.cartModel({
       ...dto,
+      items: resolvedItems,
       user: userId,
       total,
       createdBy: userId,
@@ -48,10 +75,9 @@ export class CartService {
     const updatedPayload: any = { ...dto };
 
     if (dto.items && dto.items.length > 0) {
-      const validItems = dto.items.filter(
-        (item) => item.quantity !== undefined && item.price !== undefined,
-      ) as Array<{ quantity: number; price: number }>;
-      updatedPayload.total = this.calculateTotal(validItems);
+      const resolvedItems = await this.resolveItemsWithPrices(dto.items);
+      updatedPayload.items = resolvedItems;
+      updatedPayload.total = this.calculateTotal(resolvedItems);
     }
 
     const updated = await this.cartModel.findByIdAndUpdate(
@@ -106,13 +132,20 @@ export class CartService {
       (item) => item.productId.toString() === productId,
     );
 
+    const product = await this.productModel.findById(productId);
+
+    if (!product) {
+      throw new NotFoundException(`Product with id ${productId} not found`);
+    }
+
     if (existingItem) {
       existingItem.quantity += quantity;
+      existingItem.price = product.price;
     } else {
       cart.items.push({
         productId: productId as any,
         quantity,
-        price: 0, // Price should be provided separately or fetched from product
+        price: product.price,
       } as any);
     }
 
