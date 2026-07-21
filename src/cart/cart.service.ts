@@ -48,7 +48,10 @@ export class CartService {
     const updatedPayload: any = { ...dto };
 
     if (dto.items && dto.items.length > 0) {
-      updatedPayload.total = this.calculateTotal(dto.items);
+      const validItems = dto.items.filter(
+        (item) => item.quantity !== undefined && item.price !== undefined,
+      ) as Array<{ quantity: number; price: number }>;
+      updatedPayload.total = this.calculateTotal(validItems);
     }
 
     const updated = await this.cartModel.findByIdAndUpdate(

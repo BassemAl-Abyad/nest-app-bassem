@@ -38,7 +38,7 @@ export class ProductService {
     imageUrls: string[] | undefined,
     id: string
   ) {
-    const updatedPayload = { ...dto };
+    const updatedPayload: any = { ...dto };
     if (imageUrls && imageUrls.length > 0) {
       updatedPayload.images = imageUrls;
     }
