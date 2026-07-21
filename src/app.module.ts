@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+import { CacheModule, CacheInterceptor } from '@nestjs/cache-manager';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { resolve } from 'path';
 import { AuthModule } from './auth/auth.module';
@@ -16,6 +18,7 @@ import { CouponModule } from './coupon/coupon.module';
 
 @Module({
   imports: [
+    CacheModule.register({ isGlobal: true, ttl: 60 }),
     ConfigModule.forRoot({
       envFilePath: resolve('./config/dev.env'),
       isGlobal: true,
@@ -42,6 +45,12 @@ import { CouponModule } from './coupon/coupon.module';
     CouponModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
+    },
+  ],
 })
 export class AppModule {}
