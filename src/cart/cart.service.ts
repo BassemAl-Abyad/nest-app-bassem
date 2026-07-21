@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -24,11 +25,15 @@ export class CartService {
   }
 
   private async resolveItemsWithPrices(
-    items: Array<{ productId: string; quantity: number; price?: number }>,
+    items: Array<{ productId?: string; quantity?: number; price?: number }>,
   ) {
     const resolvedItems: Array<{ productId: string; quantity: number; price: number }> = [];
 
     for (const item of items) {
+      if (!item.productId || item.quantity === undefined) {
+        throw new BadRequestException("Each cart item must include a productId and quantity");
+      }
+
       const product = await this.productModel.findById(item.productId);
 
       if (!product) {
