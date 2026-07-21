@@ -13,34 +13,28 @@ export class Product {
   })
   name!: string;
 
-@Prop({
+  @Prop({
     type: String,
-
+    required: false,
   })
   overview!: string;
 
-  @Prop([
-    {
-      type: String,
-      required: true,
-    },
-  ])
+  @Prop({
+    type: [String],
+    required: true,
+  })
   images!: string[];
 
-  @Prop([
-    {
-      type: Number,
-      required: true,
-    },
-  ])
+  @Prop({
+    type: Number,
+    required: true,
+  })
   price!: number;
 
-  @Prop([
-    {
-      type: Number,
-      required: true,
-    },
-  ])
+  @Prop({
+    type: Number,
+    required: true,
+  })
   stock!: number;
 
   @Prop({
