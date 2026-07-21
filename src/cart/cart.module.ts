@@ -7,9 +7,10 @@ import { TokenService } from "src/common/services/token.service";
 import { CartModel } from "src/DB/Models/cart.model";
 import { UserModel } from "src/DB/Models/user.model";
 import { ProductModel } from "src/DB/Models/product.model";
+import { CouponModel } from "src/DB/Models/coupon.model";
 
 @Module({
-  imports: [CartModel, UserModel, ProductModel],
+  imports: [CartModel, UserModel, ProductModel, CouponModel],
   providers: [CartService, AuthGuard, TokenService, JwtService],
   controllers: [CartController],
 })

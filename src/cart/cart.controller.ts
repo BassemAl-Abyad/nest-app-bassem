@@ -75,10 +75,20 @@ export class CartController {
     return this.cartService.clearCart(id);
   }
 
+  @Post(":id/apply-coupon")
+  @UseGuards(AuthGuard)
+  async applyCoupon(
+    @Param("id") id: string,
+    @Body() body: { code: string },
+    @Req() req: any,
+  ) {
+    return this.cartService.applyCouponToCart(id, body.code, req.user._id);
+  }
+
   @Patch(":id/checkout")
   @UseGuards(AuthGuard)
-  async checkout(@Param("id") id: string) {
-    return this.cartService.checkout(id);
+  async checkout(@Param("id") id: string, @Req() req: any) {
+    return this.cartService.checkout(id, req.user._id);
   }
 
   @Delete(":id")

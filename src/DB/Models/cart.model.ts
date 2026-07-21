@@ -49,6 +49,34 @@ export class Cart {
 
   @Prop({
     type: String,
+    required: false,
+    trim: true,
+  })
+  couponCode?: string;
+
+  @Prop({
+    type: mongoose.Types.ObjectId,
+    required: false,
+    ref: "Coupon",
+  })
+  coupon?: string;
+
+  @Prop({
+    type: Number,
+    required: true,
+    default: 0,
+  })
+  discountAmount!: number;
+
+  @Prop({
+    type: Number,
+    required: true,
+    default: 0,
+  })
+  finalTotal!: number;
+
+  @Prop({
+    type: String,
     enum: ["active", "checkedOut", "abandoned"],
     default: "active",
   })
