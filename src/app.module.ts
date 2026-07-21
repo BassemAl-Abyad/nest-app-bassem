@@ -7,6 +7,9 @@ import { resolve } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { Connection } from 'mongoose';
 import { MailModule } from './mail/mail.module';
+import { CategoryModule } from './category/category.module';
+import { BrandModule } from './brand/brand.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { MailModule } from './mail/mail.module';
     }),
     AuthModule,
     MailModule,
+    CategoryModule,
+    BrandModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],
