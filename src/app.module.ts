@@ -10,6 +10,7 @@ import { MailModule } from './mail/mail.module';
 import { CategoryModule } from './category/category.module';
 import { BrandModule } from './brand/brand.module';
 import { ProductModule } from './product/product.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ProductModule } from './product/product.module';
     CategoryModule,
     BrandModule,
     ProductModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [AppService],
