@@ -159,4 +159,85 @@ export class PaymentService {
 
     return coupon;
   }
+
+  async createPaymentIntent(params: {
+    amount: number;
+    currency?: string;
+    customerId?: string;
+    paymentMethodId?: string;
+    metadata?: Record<string, string>;
+    description?: string;
+    automaticPaymentMethods?: {
+      enabled: boolean;
+      allowRedirects?: 'never' | 'always' | 'if_required';
+    };
+  }) {
+    const {
+      amount,
+      currency = 'usd',
+      customerId,
+      paymentMethodId,
+      metadata = {},
+      description,
+      automaticPaymentMethods = { enabled: true },
+    } = params;
+
+    const paymentIntentParams: Stripe.PaymentIntentCreateParams = {
+      amount: Math.round(amount * 100),
+      currency,
+      metadata,
+      automatic_payment_methods: automaticPaymentMethods,
+    };
+
+    if (customerId) {
+      paymentIntentParams.customer = customerId;
+    }
+
+    if (paymentMethodId) {
+      paymentIntentParams.payment_method = paymentMethodId;
+    }
+
+    if (description) {
+      paymentIntentParams.description = description;
+    }
+
+    const paymentIntent = await this.stripe.paymentIntents.create(paymentIntentParams);
+
+    return paymentIntent;
+  }
+
+  async confirmPaymentIntent(paymentIntentId: string, params?: {
+    paymentMethodId?: string;
+    return_url?: string;
+  }) {
+    const confirmParams: Stripe.PaymentIntentConfirmParams = {};
+
+    if (params?.paymentMethodId) {
+      confirmParams.payment_method = params.paymentMethodId;
+    }
+
+    if (params?.return_url) {
+      confirmParams.return_url = params.return_url;
+    }
+
+    const paymentIntent = await this.stripe.paymentIntents.confirm(paymentIntentId, confirmParams);
+
+    return paymentIntent;
+  }
+
+  async retrievePaymentIntent(paymentIntentId: string) {
+    return this.stripe.paymentIntents.retrieve(paymentIntentId);
+  }
+
+  async cancelPaymentIntent(paymentIntentId: string, params?: {
+    cancellationReason?: 'duplicate' | 'fraudulent' | 'requested_by_customer' | 'abandoned';
+  }) {
+    const cancelParams: Stripe.PaymentIntentCancelParams = {};
+
+    if (params?.cancellationReason) {
+      cancelParams.cancellation_reason = params.cancellationReason;
+    }
+
+    return this.stripe.paymentIntents.cancel(paymentIntentId, cancelParams);
+  }
 }
