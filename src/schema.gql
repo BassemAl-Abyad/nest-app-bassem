@@ -1,0 +1,45 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Coupon {
+  _id: ID!
+  code: String!
+  createdAt: DateTime
+  description: String
+  discountType: String!
+  discountValue: Float!
+  endDate: DateTime!
+  isActive: Boolean!
+  minOrderAmount: Float!
+  name: String!
+  startDate: DateTime!
+  updatedAt: DateTime
+  usageLimit: Float!
+  usedCount: Float!
+}
+
+input CreateCouponInput {
+  code: String!
+  description: String
+  discountType: String!
+  discountValue: Float!
+  endDate: String!
+  minOrderAmount: Float!
+  name: String!
+  startDate: String!
+  usageLimit: Int!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  createCoupon(adminId: String!, input: CreateCouponInput!): Coupon!
+}
+
+type Query {
+  coupons: [Coupon!]!
+}
