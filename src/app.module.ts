@@ -5,7 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { resolve } from 'path';
+import { join, resolve } from 'path';
 import { AuthModule } from './auth/auth.module';
 import { Connection } from 'mongoose';
 import { MailModule } from './mail/mail.module';
@@ -16,6 +16,8 @@ import { CartModule } from './cart/cart.module';
 import { ReviewModule } from './review/review.module';
 import { CouponModule } from './coupon/coupon.module';
 import { OrderModule } from './order/order.module';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
 @Module({
   imports: [
@@ -35,6 +37,12 @@ import { OrderModule } from './order/order.module';
           });
         },
       }),
+    }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      sortSchema: true,
+      context: ({ req }) => ({ req }),
     }),
     AuthModule,
     MailModule,
