@@ -21,6 +21,7 @@ export class PaymentService {
     cancelUrl: string;
     metadata?: Record<string, string>;
     customerEmail?: string;
+    couponId?: string;
   }) {
     const {
       amount,
@@ -29,6 +30,7 @@ export class PaymentService {
       cancelUrl,
       metadata = {},
       customerEmail,
+      couponId,
     } = params;
 
     const session = await this.stripe.checkout.sessions.create({
@@ -50,8 +52,111 @@ export class PaymentService {
       cancel_url: cancelUrl,
       metadata,
       customer_email: customerEmail,
+      discounts: couponId ? [{ coupon: couponId }] : undefined,
     });
 
     return session;
+  }
+
+  async createCoupon(params: {
+    discountType: 'percentage' | 'fixed';
+    discountValue: number;
+    currency?: string;
+    duration: 'once' | 'repeating' | 'forever';
+    durationInMonths?: number;
+    maxRedemptions?: number;
+    redeemBy?: Date;
+    metadata?: Record<string, string>;
+  }) {
+    const {
+      discountType,
+      discountValue,
+      currency = 'usd',
+      duration,
+      durationInMonths,
+      maxRedemptions,
+      redeemBy,
+      metadata = {},
+    } = params;
+
+    const couponParams: Stripe.CouponCreateParams = {
+      currency,
+      duration,
+      metadata,
+    };
+
+    if (discountType === 'percentage') {
+      couponParams.percent_off = discountValue;
+    } else {
+      couponParams.amount_off = Math.round(discountValue * 100);
+    }
+
+    if (duration === 'repeating' && durationInMonths) {
+      couponParams.duration_in_months = durationInMonths;
+    }
+
+    if (maxRedemptions) {
+      couponParams.max_redemptions = maxRedemptions;
+    }
+
+    if (redeemBy) {
+      couponParams.redeem_by = Math.floor(redeemBy.getTime() / 1000);
+    }
+
+    const coupon = await this.stripe.coupons.create(couponParams);
+
+    return coupon;
+  }
+
+  async retrieveCoupon(couponId: string) {
+    return this.stripe.coupons.retrieve(couponId);
+  }
+
+  async deleteCoupon(couponId: string) {
+    return this.stripe.coupons.del(couponId);
+  }
+
+  async listCoupons(params?: {
+    limit?: number;
+    startingAfter?: string;
+  }) {
+    return this.stripe.coupons.list(params);
+  }
+
+  async createCouponFromInternalCoupon(params: {
+    code: string;
+    discountType: 'percentage' | 'fixed';
+    discountValue: number;
+    endDate: Date;
+    maxRedemptions?: number;
+    currency?: string;
+  }) {
+    const {
+      discountType,
+      discountValue,
+      endDate,
+      maxRedemptions,
+      currency = 'usd',
+    } = params;
+
+    const couponParams: Stripe.CouponCreateParams = {
+      currency,
+      duration: 'once',
+      redeem_by: Math.floor(endDate.getTime() / 1000),
+    };
+
+    if (discountType === 'percentage') {
+      couponParams.percent_off = discountValue;
+    } else {
+      couponParams.amount_off = Math.round(discountValue * 100);
+    }
+
+    if (maxRedemptions) {
+      couponParams.max_redemptions = maxRedemptions;
+    }
+
+    const coupon = await this.stripe.coupons.create(couponParams);
+
+    return coupon;
   }
 }
