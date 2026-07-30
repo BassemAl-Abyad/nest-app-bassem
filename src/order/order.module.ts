@@ -9,9 +9,10 @@ import { CartModel } from "src/DB/Models/cart.model";
 import { UserModel } from "src/DB/Models/user.model";
 import { ProductModel } from "src/DB/Models/product.model";
 import { CouponModel } from "src/DB/Models/coupon.model";
+import { SocketModule } from "src/socket/socket.module";
 
 @Module({
-  imports: [OrderModel, CartModel, UserModel, ProductModel, CouponModel],
+  imports: [OrderModel, CartModel, UserModel, ProductModel, CouponModel, SocketModule],
   providers: [OrderService, AuthGuard, TokenService, JwtService],
   controllers: [OrderController],
 })

@@ -11,6 +11,7 @@ import { Order, HOrderDocument } from "src/DB/Models/order.model";
 import { Product, HProductDocument } from "src/DB/Models/product.model";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { UpdateOrderDto } from "./dto/update-order.dto";
+import { SocketService } from "src/socket/socket.service";
 
 @Injectable()
 export class OrderService {
@@ -23,6 +24,7 @@ export class OrderService {
     private readonly productModel: Model<HProductDocument>,
     @InjectModel(Coupon.name)
     private readonly couponModel: Model<HCouponDocument>,
+    private readonly socketService: SocketService,
   ) {}
 
   private async validateCartOwnership(cartId: string, userId: string) {
@@ -121,6 +123,16 @@ export class OrderService {
 
     cart.status = "checkedOut";
     await cart.save();
+
+    const checkoutPayload = {
+      orderId: order.id,
+      userId,
+      order,
+      message: "Order checked out successfully",
+    };
+
+    this.socketService.emitToRoom(`user:${userId}`, "order.checkedOut", checkoutPayload);
+    this.socketService.emitToAll("order.checkedOut", checkoutPayload);
 
     return order;
   }
