@@ -18,6 +18,7 @@ import { CouponModule } from './coupon/coupon.module';
 import { OrderModule } from './order/order.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { PaymentService } from './Services/payment/payment.service';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,
     },
+    PaymentService,
   ],
 })
 export class AppModule {}
