@@ -240,4 +240,56 @@ export class PaymentService {
 
     return this.stripe.paymentIntents.cancel(paymentIntentId, cancelParams);
   }
+
+  async createRefund(params: {
+    paymentIntentId: string;
+    amount?: number;
+    reason?: 'duplicate' | 'fraudulent' | 'requested_by_customer';
+    metadata?: Record<string, string>;
+  }) {
+    const { paymentIntentId, amount, reason, metadata = {} } = params;
+
+    const refundParams: Stripe.RefundCreateParams = {
+      payment_intent: paymentIntentId,
+      metadata,
+    };
+
+    if (amount) {
+      refundParams.amount = Math.round(amount * 100);
+    }
+
+    if (reason) {
+      refundParams.reason = reason;
+    }
+
+    const refund = await this.stripe.refunds.create(refundParams);
+
+    return refund;
+  }
+
+  async retrieveRefund(refundId: string) {
+    return this.stripe.refunds.retrieve(refundId);
+  }
+
+  async listRefunds(params?: {
+    paymentIntentId?: string;
+    limit?: number;
+    startingAfter?: string;
+  }) {
+    const listParams: Stripe.RefundListParams = {};
+
+    if (params?.paymentIntentId) {
+      listParams.payment_intent = params.paymentIntentId;
+    }
+
+    if (params?.limit) {
+      listParams.limit = params.limit;
+    }
+
+    if (params?.startingAfter) {
+      listParams.starting_after = params.startingAfter;
+    }
+
+    return this.stripe.refunds.list(listParams);
+  }
 }
